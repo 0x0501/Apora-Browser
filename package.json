@@ -15,7 +15,10 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@heroui/react": "^2.8.5",
     "@tailwindcss/vite": "^4.1.16",
+    "@wxt-dev/storage": "^1.2.6",
+    "framer-motion": "^12.23.24",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwindcss": "^4.1.16"
