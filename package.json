@@ -16,12 +16,15 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.5",
+    "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.16",
     "@wxt-dev/storage": "^1.2.6",
     "framer-motion": "^12.23.24",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.16"
+    "react-hook-form": "^7.65.0",
+    "tailwindcss": "^4.1.16",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/react": "^19.1.12",
