@@ -1,18 +1,35 @@
 import { Switch } from "@heroui/react";
+import { useSetStateWithStorage } from "@/hooks/use-set-state-with-storage";
 import { cn } from "@/utils/css";
+import { loadConfigFromStorage } from "@/utils/storage";
+
 
 export function SwitchPanel() {
-	const [toggle, setToggle] = useState(false); // read from storage
+	const [toggle, setToggle] = useState<boolean>(false);
+
+	const setToggleWithStorage = useSetStateWithStorage(
+		setToggle,
+		aporaBrowserEnabledStorage,
+	);
+
+	const switchRef = useRef<HTMLInputElement>(null);
 
 	const count = 0;
+
+	useEffect(() => {
+		loadConfigFromStorage(({ aporaBrowserEnabled }) => {
+			setToggle(aporaBrowserEnabled);
+		});
+	}, []); // runs on mount
 
 	return (
 		<div className="text-center space-y-6">
 			<p className="text-gray-400">Click the switch to enable Apora.</p>
 
 			<Switch
+				ref={switchRef}
 				isSelected={toggle}
-				onChange={() => setToggle((e) => !e)}
+				onValueChange={(isSelected) => setToggleWithStorage(isSelected)}
 				size="lg"
 			/>
 			<p

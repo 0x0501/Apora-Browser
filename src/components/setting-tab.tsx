@@ -12,6 +12,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import type z from "zod";
 import { SettingSchema } from "@/utils/schema";
+import {
+	ankiConnectUrlStorage,
+	ankiDeckNameStorage,
+	aporaAPITokenStorage,
+	loadConfigFromStorage,
+} from "@/utils/storage";
 
 export default function SettingTab() {
 	const mockLog = "This is log...";
@@ -28,17 +34,30 @@ export default function SettingTab() {
 		{ key: "default", label: "Default" },
 	];
 
-	const { handleSubmit, control } = useForm({
+	const { handleSubmit, control, reset } = useForm({
 		resolver: zodResolver(SettingSchema),
 		defaultValues: {
-			ankiConnectUrl: "http://127.0.0.1:8765", // Read url from storage, if null, set default url
+			ankiConnectUrl: "", // Read url from storage, if null, set default url
 			ankiDeckName: "",
 			aporaAPIToken: "",
 		},
 	});
 
+	useEffect(() => {
+		loadConfigFromStorage(({ ankiConnectUrl, ankiDeckName, aporaAPIToken }) => {
+			reset({
+				ankiConnectUrl,
+				ankiDeckName: ankiDeckName ?? "",
+				aporaAPIToken: aporaAPIToken ?? "",
+			});
+		});
+	}, []); // runs once mount
+
 	function onSavingSettings(values: z.infer<typeof SettingSchema>) {
 		console.log(values);
+		ankiConnectUrlStorage.setValue(values.ankiConnectUrl);
+		ankiDeckNameStorage.setValue(values.ankiDeckName);
+		aporaAPITokenStorage.setValue(values.aporaAPIToken);
 	}
 
 	return (
@@ -85,6 +104,8 @@ export default function SettingTab() {
 						render={({ field, fieldState }) => (
 							<Select
 								{...field}
+								defaultSelectedKeys={[field.value]}
+								multiple={false}
 								validationBehavior="aria"
 								isRequired
 								isInvalid={fieldState.invalid}
