@@ -10,7 +10,9 @@ import {
 } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import type z from "zod";
+import { type DeckItem, listDecks } from "@/utils/operation";
 import { SettingSchema } from "@/utils/schema";
 import {
 	ankiConnectUrlStorage,
@@ -22,17 +24,17 @@ import {
 export default function SettingTab() {
 	const mockLog = "This is log...";
 
-	const mockSelectItems = [
-		{
-			key: "deck 1",
-			label: "Deck 1",
-		},
-		{
-			key: "deck 2",
-			label: "Deck 2",
-		},
-		{ key: "default", label: "Default" },
-	];
+	const [deckList, setDeckList] = useState<DeckItem[]>([]);
+
+	const [loadErrorMsg, setLoadErrMsg] = useState<string>();
+
+	const [isLoadingDecks, setIsLoadingDecks] = useState<boolean>(false);
+
+	const [isOpenSelection, setIsOpenSelection] = useState<boolean>(false);
+
+	const [ankiConnectUrl, setAnkiConnectUrl] = useState<string>(
+		ankiConnectUrlStorage.fallback,
+	);
 
 	const { handleSubmit, control, reset } = useForm({
 		resolver: zodResolver(SettingSchema),
@@ -44,20 +46,38 @@ export default function SettingTab() {
 	});
 
 	useEffect(() => {
-		loadConfigFromStorage(({ ankiConnectUrl, ankiDeckName, aporaAPIToken }) => {
-			reset({
-				ankiConnectUrl,
-				ankiDeckName: ankiDeckName ?? "",
-				aporaAPIToken: aporaAPIToken ?? "",
-			});
-		});
+		loadConfigFromStorage(
+			async ({ ankiConnectUrl, ankiDeckName, aporaAPIToken }) => {
+				setAnkiConnectUrl(ankiConnectUrl); // set anki connect url as local state
+
+				reset({
+					ankiConnectUrl,
+					ankiDeckName: ankiDeckName ?? "",
+					aporaAPIToken: aporaAPIToken ?? "",
+				});
+
+				// load decks from anki connect
+				const res = await listDecks({ ankiConnectUrl });
+
+				if (res.success && res.data) {
+					setDeckList(res.data || []); // use empty array as fallback
+				} else {
+					toast.error(res.message);
+					setLoadErrMsg(
+						res.message || `Cannot load decks from: ${ankiConnectUrl}`,
+					);
+					console.error(`Load Error: ${res.message}`);
+				}
+			},
+		);
 	}, []); // runs once mount
 
-	function onSavingSettings(values: z.infer<typeof SettingSchema>) {
-		console.log(values);
+	async function onSavingSettings(values: z.infer<typeof SettingSchema>) {
 		ankiConnectUrlStorage.setValue(values.ankiConnectUrl);
 		ankiDeckNameStorage.setValue(values.ankiDeckName);
 		aporaAPITokenStorage.setValue(values.aporaAPIToken);
+
+		toast.success("Settings saved.");
 	}
 
 	return (
@@ -85,8 +105,9 @@ export default function SettingTab() {
 								{...field}
 								validationBehavior="aria"
 								isRequired
-								isInvalid={fieldState.invalid}
-								errorMessage={fieldState.error?.message}
+								isInvalid={fieldState.invalid || !!loadErrorMsg}
+								errorMessage={fieldState.error?.message || loadErrorMsg}
+								onValueChange={(value) => setAnkiConnectUrl(value)}
 								fullWidth
 								size="sm"
 								classNames={{ label: "text-xs" }}
@@ -101,10 +122,37 @@ export default function SettingTab() {
 					<Controller
 						control={control}
 						name="ankiDeckName"
-						render={({ field, fieldState }) => (
+						render={({ field, fieldState, formState }) => (
 							<Select
 								{...field}
-								defaultSelectedKeys={[field.value]}
+								isLoading={isLoadingDecks}
+								isOpen={isOpenSelection}
+								defaultSelectedKeys={loadErrorMsg ? [] : [field.value]}
+								onOpenChange={async (isOpen) => {
+									// check if the anki connect url was updated
+									if (formState.dirtyFields.ankiConnectUrl) {
+										setIsLoadingDecks(true);
+
+										// list decks from updated url
+										const res = await listDecks({ ankiConnectUrl });
+
+										if (res.success && res.data) {
+											setDeckList(res.data);
+											setLoadErrMsg(undefined);
+											setIsOpenSelection(isOpen); // only open selection when no error was occurred
+										} else {
+											const msg =
+												res.message ||
+												`Cannot load decks from: ${ankiConnectUrl}`;
+											setLoadErrMsg(msg);
+											toast.error(msg);
+										}
+										setIsLoadingDecks(false);
+									} else {
+										// open selection when no fields was touched
+										setIsOpenSelection(isOpen);
+									}
+								}}
 								multiple={false}
 								validationBehavior="aria"
 								isRequired
@@ -114,7 +162,7 @@ export default function SettingTab() {
 								placeholder="Select a deck"
 								className="w-full"
 								size="sm"
-								items={mockSelectItems}
+								items={deckList}
 								description="Select your target deck."
 							>
 								{(deck) => <SelectItem>{deck.label}</SelectItem>}
