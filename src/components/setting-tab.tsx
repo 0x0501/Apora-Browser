@@ -1,7 +1,10 @@
 import {
 	Button,
+	Checkbox,
 	Form,
 	Input,
+	Radio,
+	RadioGroup,
 	Select,
 	SelectItem,
 	Tab,
@@ -13,12 +16,16 @@ import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import type z from "zod";
 import { type DeckItem, listDecks } from "@/utils/operation";
-import { SettingSchema } from "@/utils/schema";
+import { FeatureSchema, SettingSchema } from "@/utils/schema";
 import {
+	addPartOfSpeechToTagStorage,
 	ankiConnectUrlStorage,
 	ankiDeckNameStorage,
 	aporaAPITokenStorage,
+	enablePronunciationStorage,
+	enableTermHighlightingStorage,
 	loadConfigFromStorage,
+	pronunciationVariantStorage,
 } from "@/utils/storage";
 
 export default function SettingTab() {
@@ -36,7 +43,11 @@ export default function SettingTab() {
 		ankiConnectUrlStorage.fallback,
 	);
 
-	const { handleSubmit, control, reset } = useForm({
+	const {
+		handleSubmit: handleSettingSubmit,
+		control: controlSetting,
+		reset: resetSetting,
+	} = useForm({
 		resolver: zodResolver(SettingSchema),
 		defaultValues: {
 			ankiConnectUrl: "", // Read url from storage, if null, set default url
@@ -45,15 +56,44 @@ export default function SettingTab() {
 		},
 	});
 
+	const {
+		handleSubmit: handleFeatureSubmit,
+		control: controlFeature,
+		reset: resetFeature,
+	} = useForm({
+		resolver: zodResolver(FeatureSchema),
+		defaultValues: {
+			enablePronunciation: false,
+			pronunciationVariant: "US",
+			enableTermHighlighting: true,
+			addPartOfSpeechToTag: true,
+		},
+	});
+
 	useEffect(() => {
 		loadConfigFromStorage(
-			async ({ ankiConnectUrl, ankiDeckName, aporaAPIToken }) => {
+			async ({
+				ankiConnectUrl,
+				ankiDeckName,
+				aporaAPIToken,
+				enablePronunciation,
+				pronunciationVariant,
+				enableTermHighlighting,
+				addPartOfSpeechToTag,
+			}) => {
 				setAnkiConnectUrl(ankiConnectUrl); // set anki connect url as local state
 
-				reset({
+				resetSetting({
 					ankiConnectUrl,
 					ankiDeckName: ankiDeckName ?? "",
 					aporaAPIToken: aporaAPIToken ?? "",
+				});
+
+				resetFeature({
+					enablePronunciation,
+					pronunciationVariant,
+					enableTermHighlighting,
+					addPartOfSpeechToTag,
 				});
 
 				// load decks from anki connect
@@ -72,12 +112,23 @@ export default function SettingTab() {
 		);
 	}, []); // runs once mount
 
-	async function onSavingSettings(values: z.infer<typeof SettingSchema>) {
+	async function onSaveSettings(values: z.infer<typeof SettingSchema>) {
 		ankiConnectUrlStorage.setValue(values.ankiConnectUrl);
 		ankiDeckNameStorage.setValue(values.ankiDeckName);
 		aporaAPITokenStorage.setValue(values.aporaAPIToken);
 
-		toast.success("Settings saved.");
+		toast.success("Setting saved.");
+		console.log(values);
+	}
+
+	async function onSaveFeatures(values: z.infer<typeof FeatureSchema>) {
+		enablePronunciationStorage.setValue(values.enablePronunciation);
+		pronunciationVariantStorage.setValue(values.pronunciationVariant);
+		enableTermHighlightingStorage.setValue(values.enableTermHighlighting);
+		addPartOfSpeechToTagStorage.setValue(values.addPartOfSpeechToTag);
+
+		toast.success("Feature saved.");
+		console.log(values);
 	}
 
 	return (
@@ -96,9 +147,9 @@ export default function SettingTab() {
 				/>
 			</Tab>
 			<Tab key={"Settings"} title={"Settings"} className="w-full">
-				<Form onSubmit={handleSubmit(onSavingSettings)} className="w-full">
+				<Form onSubmit={handleSettingSubmit(onSaveSettings)} className="w-full">
 					<Controller
-						control={control}
+						control={controlSetting}
 						name="ankiConnectUrl"
 						render={({ field, fieldState }) => (
 							<Input
@@ -120,7 +171,7 @@ export default function SettingTab() {
 						)}
 					/>
 					<Controller
-						control={control}
+						control={controlSetting}
 						name="ankiDeckName"
 						render={({ field, fieldState, formState }) => (
 							<Select
@@ -170,7 +221,7 @@ export default function SettingTab() {
 						)}
 					/>
 					<Controller
-						control={control}
+						control={controlSetting}
 						name="aporaAPIToken"
 						render={({ field, fieldState }) => (
 							<Input
@@ -202,6 +253,91 @@ export default function SettingTab() {
 							/>
 						)}
 					/>
+					{/* Features */}
+					<Button type="submit" color="primary" size="sm" className="text-sm">
+						Save
+					</Button>
+				</Form>
+			</Tab>
+			<Tab key={"Features"} title={"Features"} className="w-full">
+				<Form onSubmit={handleFeatureSubmit(onSaveFeatures)}>
+					<div className="grid grid-cols-2 w-full gap-3">
+						<span className="col-span-2 text-foreground-500">
+							Toggle features you'd like to use:
+						</span>
+						<Controller
+							control={controlFeature}
+							name="enablePronunciation"
+							render={({ field, fieldState }) => (
+								<Checkbox
+									isSelected={field.value}
+									onValueChange={field.onChange}
+									validationBehavior="aria"
+									isRequired
+									isInvalid={fieldState.invalid}
+									size="sm"
+								>
+									Pronunciation
+								</Checkbox>
+							)}
+						/>
+						<Controller
+							control={controlFeature}
+							name="enableTermHighlighting"
+							render={({ field, fieldState }) => (
+								<Checkbox
+									isSelected={field.value}
+									onValueChange={field.onChange}
+									validationBehavior="aria"
+									isRequired
+									isInvalid={fieldState.invalid}
+									size="sm"
+								>
+									Term Highlight
+								</Checkbox>
+							)}
+						/>
+						<Controller
+							control={controlFeature}
+							name="addPartOfSpeechToTag"
+							render={({ field, fieldState }) => (
+								<Checkbox
+									isSelected={field.value}
+									onValueChange={field.onChange}
+									validationBehavior="aria"
+									isRequired
+									isInvalid={fieldState.invalid}
+									className="col-span-2"
+									size="sm"
+								>
+									Add Part-of-Speech to tag
+								</Checkbox>
+							)}
+						/>
+
+						<Controller
+							control={controlFeature}
+							name="pronunciationVariant"
+							render={({ field }) => (
+								<RadioGroup
+									{...field}
+									label="Select Pronunciation variant"
+									className="col-span-2"
+									orientation="horizontal"
+									classNames={{ wrapper: "gap-6.5" }}
+									onValueChange={field.onChange}
+								>
+									<Radio value={"US"} className="col-span-2" size="sm">
+										American English
+									</Radio>
+
+									<Radio value={"GB"} className="col-span-2" size="sm">
+										British English
+									</Radio>
+								</RadioGroup>
+							)}
+						/>
+					</div>
 					<Button type="submit" color="primary" size="sm" className="text-sm">
 						Save
 					</Button>
