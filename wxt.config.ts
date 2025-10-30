@@ -9,7 +9,7 @@ export default defineConfig({
     version: "0.0.1",
     description: "Browser extension for using Apora on browsers.",
     host_permissions: ["https://apora.sumku.cc/*", "http://127.0.0.1/*"], // Always allow Apora website
-    permissions: ["storage"],
+    permissions: ["storage", "notifications"],
   },
   modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
   autoIcons: {
