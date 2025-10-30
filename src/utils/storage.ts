@@ -29,14 +29,14 @@ export const loadConfigFromStorage = async (
     setFn: (
         { ankiConnectUrl, aporaBrowserEnabled, ankiDeckName, aporaAPIToken }:
             loadConfigFromStorageType,
-    ) => void,
+    ) => void | Promise<void>,
 ) => {
     const _ankiConnectUrl = await ankiConnectUrlStorage.getValue();
     const _ankiDeckName = await ankiDeckNameStorage.getValue();
     const _aporaAPIToken = await aporaAPITokenStorage.getValue();
     const _aporaBrowserEnabled = await aporaBrowserEnabledStorage.getValue();
 
-    setFn({
+    await setFn({
         ankiConnectUrl: _ankiConnectUrl,
         aporaBrowserEnabled: _aporaBrowserEnabled,
         ankiDeckName: _ankiDeckName,
