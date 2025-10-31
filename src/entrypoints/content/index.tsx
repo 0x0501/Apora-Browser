@@ -8,8 +8,52 @@ export default defineContentScript({
 	matches: ["<all_urls>"],
 
 	cssInjectionMode: "ui",
+
 	async main(ctx) {
 		const enabled = await aporaBrowserEnabledStorage.getValue();
+
+		const expandSelectionToBoundaries = () => {
+			// if no selection was occurred, return
+			const selection = window.getSelection();
+			if (!selection || selection.rangeCount === 0) return null;
+
+			const range = selection.getRangeAt(0).cloneRange(); // clone range, do not change the original.
+			const { startContainer, endContainer, startOffset, endOffset } = range;
+
+			// only handle text node
+			if (
+				startContainer.nodeType !== Node.TEXT_NODE ||
+				endContainer.nodeType !== Node.TEXT_NODE
+			) {
+				console.log("Non-text node, return.");
+				return range.toString().trim();
+			}
+
+			const startText = startContainer.textContent || "";
+			const endText = endContainer.textContent || "";
+
+			let newStart = startOffset;
+			let newEnd = endOffset;
+
+			// expand left to word start
+			while (newStart > 0 && /\S/.test(startText[newStart - 1])) {
+				newStart--;
+			}
+
+			// expand right to word end
+			while (newEnd < endText.length && /\S/.test(endText[newEnd])) {
+				newEnd++;
+			}
+
+			// expanded selection
+			const expandedRange = document.createRange();
+			expandedRange.setStart(startContainer, newStart);
+			expandedRange.setEnd(endContainer, newEnd);
+
+			selection.removeAllRanges();
+			selection.addRange(expandedRange);
+		};
+
 		console.log(`Apora Browser: ${enabled}`);
 
 		ctx.addEventListener(document, "keydown", (e) => {
@@ -30,6 +74,8 @@ export default defineContentScript({
 
 			if (!selection) return; // if nothing's selected return
 
+			expandSelectionToBoundaries();
+
 			const parentElementOfSelection = selection.focusNode?.parentElement;
 
 			if (!parentElementOfSelection) {
@@ -46,8 +92,12 @@ export default defineContentScript({
 			// get the Rect (size) of selected range
 			const rect = range.getBoundingClientRect();
 
-			console.log(`Range: ${range}`);
-			console.log(rect);
+			const fullWordSelection = range.toString();
+
+			if (!fullWordSelection) {
+				console.warn(`Nothing's selected.`);
+				return;
+			}
 
 			// create mounted UI
 			const ui = await createShadowRootUi(ctx, {
@@ -67,9 +117,7 @@ export default defineContentScript({
 					// 2. render react component
 					// Create a root on the UI container and render a component
 					const root = ReactDOM.createRoot(uiContainer);
-					root.render(
-						<PopOver rect={rect} content={range.toString().trim()} />,
-					);
+					root.render(<PopOver rect={rect} content={fullWordSelection} />);
 					return root;
 				},
 				onRemove: (root) => {
@@ -90,8 +138,6 @@ export default defineContentScript({
 						"apora-browser-pop-over" &&
 					ui.mounted
 				) {
-					console.log("handleClickOutside");
-					console.log(event.target);
 					// remove UI when click outside
 					ui.remove();
 				}

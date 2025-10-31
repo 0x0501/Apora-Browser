@@ -30,10 +30,23 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 		}
 	}, []);
 
+	function formatContext(content: string) {
+		let capitalized = content.slice(0, 1).toUpperCase() + content.slice(1);
+
+		// if no ending punctuation was presented, we add dot(.)
+		if (!/[.?!]$/.test(capitalized)) {
+			capitalized += ".";
+		}
+
+		return capitalized;
+	}
+
 	function handleSync() {
 		const selectedTerms = selectedIndices.map((i) => splittedContents[i]); // remove duplicated terms
+		const formattedContext = formatContext(content);
 
 		console.log(selectedTerms);
+		console.log(formattedContext);
 	}
 
 	function handleClearSelection() {
