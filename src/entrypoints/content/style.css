@@ -7,7 +7,7 @@
 @font-face {
     font-family: "Pixelify Sans";
     font-style: normal;
-    src: url(./fonts/PixelifySans-Regular.ttf);
+    src: url(/fonts/PixelifySans-Regular.ttf);
 }
 
 @theme {

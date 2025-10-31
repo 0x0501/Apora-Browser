@@ -1,3 +1,4 @@
+import { CircleX, Send } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 
 interface PopOverProps {
@@ -16,7 +17,6 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 
 	const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
-
 	const splittedContents = content
 		.replaceAll(/\[\d+\]/g, "")
 		.replaceAll(/[^a-zA-Z0-9\-\s]/g, "")
@@ -31,9 +31,13 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 	}, []);
 
 	function handleSync() {
-		const selectedTerms = selectedIndices.map(i => splittedContents[i]); // remove duplicated terms
+		const selectedTerms = selectedIndices.map((i) => splittedContents[i]); // remove duplicated terms
 
 		console.log(selectedTerms);
+	}
+
+	function handleClearSelection() {
+		setSelectedIndices([]);
 	}
 
 	return (
@@ -49,13 +53,25 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 				onPointerDown={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
 			>
-				<div className="text-sm flex items-center justify-between">
-					<span className="text-gray-400">Click the word you wanna learn:</span>
+				<div className="text-sm flex items-center justify-between gap-2">
+					<span className="text-gray-400 flex-2">
+						Click the word you wanna learn:
+					</span>
+					<button
+						type="button"
+						disabled={selectedIndices.length === 0}
+						onClick={handleClearSelection}
+						className="rounded-md border border-red-200 text-red-200 not-disabled:border-red-400 not-disabled:text-red-400 text-sm py-1 px-2 cursor-pointer not-disabled:hover:bg-red-400 not-disabled:hover:text-white duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
+					>
+						<CircleX size={16} />
+						Clear
+					</button>
 					<button
 						type="button"
 						onClick={handleSync}
-						className="rounded-md bg-blue-500 text-sm py-1 px-2 text-gray-50 cursor-pointer hover:bg-blue-300 duration-400 ease-in-out transition-all"
+						className="rounded-md bg-blue-500 text-sm py-1 px-2 text-gray-50 cursor-pointer hover:bg-blue-300 duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
 					>
+						<Send size={16} />
 						Sync
 					</button>
 				</div>
