@@ -3,3 +3,13 @@
 
 @source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
+
+@font-face {
+    font-family: "Pixelify Sans";
+    font-style: normal;
+    src: url(./fonts/PixelifySans-Regular.ttf);
+}
+
+@theme {
+    --font-pixel: "Pixelify Sans", sans-serif;
+}
