@@ -30,7 +30,7 @@ export default defineContentScript({
 
 			if (!selection) return; // if nothing's selected return
 
-			const parentElementOfSelection = selection.anchorNode?.parentElement;
+			const parentElementOfSelection = selection.focusNode?.parentElement;
 
 			if (!parentElementOfSelection) {
 				console.warn(`parentElementOfSelection is none`);
@@ -42,6 +42,7 @@ export default defineContentScript({
 
 			// get the selection range =
 			const range = selection.getRangeAt(0);
+
 			// get the Rect (size) of selected range
 			const rect = range.getBoundingClientRect();
 
@@ -50,9 +51,9 @@ export default defineContentScript({
 
 			// create mounted UI
 			const ui = await createShadowRootUi(ctx, {
-				position: "inline",
+				position: "overlay",
 				name: "apora-browser-pop-over",
-				anchor: parentElementOfSelection,
+				anchor: document.body,
 				onMount: (
 					uiContainer: HTMLElement, // body element
 					_shadow: ShadowRoot,
@@ -81,6 +82,7 @@ export default defineContentScript({
 			ui.mount();
 
 			const handleClickOutside = (event: PointerEvent) => {
+				event.stopPropagation();
 				if (
 					!ui.uiContainer.contains(event.target as Node) &&
 					event.target !== ui.uiContainer &&
