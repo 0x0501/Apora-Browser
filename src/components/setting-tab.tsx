@@ -96,18 +96,18 @@ export default function SettingTab() {
 					addPartOfSpeechToTag,
 				});
 
-				// load decks from anki connect
-				const res = await listDecks({ ankiConnectUrl });
-
-				if (res.success && res.data) {
-					setDeckList(res.data || []); // use empty array as fallback
-				} else {
-					toast.error(res.message);
-					setLoadErrMsg(
-						res.message || `Cannot load decks from: ${ankiConnectUrl}`,
-					);
-					console.error(`Load Error: ${res.message}`);
-				}
+				// load decks from anki connect, do not block the UI
+				listDecks({ ankiConnectUrl }).then((res) => {
+					if (res.success && res.data) {
+						setDeckList(res.data || []); // use empty array as fallback
+					} else {
+						toast.error(res.message);
+						setLoadErrMsg(
+							res.message || `Cannot load decks from: ${ankiConnectUrl}`,
+						);
+						console.error(`Load Error: ${res.message}`);
+					}
+				});
 			},
 		);
 	}, []); // runs once mount
