@@ -12,6 +12,10 @@ export default defineContentScript({
 	async main(ctx) {
 		const enabled = await aporaBrowserEnabledStorage.getValue();
 
+		if (!enabled) {
+			return; // if Apora browser was disabled, do nothing.
+		}
+
 		const expandSelectionToBoundaries = () => {
 			// if no selection was occurred, return
 			const selection = window.getSelection();

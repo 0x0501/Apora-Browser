@@ -3,6 +3,16 @@ import { useSetStateWithStorage } from "@/hooks/use-set-state-with-storage";
 import { cn } from "@/utils/css";
 import { loadConfigFromStorage } from "@/utils/storage";
 
+// if aporaBrowserEnabledStorage changed,
+// we need reload the page so that content script could read the latest value
+aporaBrowserEnabledStorage.watch(() => {
+	browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+		const current = tabs[0];
+		if (current?.id) {
+			browser.tabs.reload(current.id);
+		}
+	});
+});
 
 export function SwitchPanel() {
 	const [toggle, setToggle] = useState<boolean>(false);
