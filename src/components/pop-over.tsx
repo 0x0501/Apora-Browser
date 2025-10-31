@@ -33,6 +33,9 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 	function formatContext(content: string) {
 		let capitalized = content.slice(0, 1).toUpperCase() + content.slice(1);
 
+		// remove all the reference: [1], [2], .etc
+		capitalized = capitalized.replaceAll(/\[\d+\]/g, "");
+
 		// if no ending punctuation was presented, we add dot(.)
 		if (!/[.?!]$/.test(capitalized)) {
 			capitalized += ".";
