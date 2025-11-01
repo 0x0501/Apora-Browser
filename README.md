@@ -1,5 +1,6 @@
 # Apora-Browser
 
+<img alt="apora browser title" src="https://github.com/0x0501/Apora-Browser/blob/911a4c1f6cc7d152a1f82894b585e490c65a6235/_resource/apora-browser-1920-1080.png" />
 
 An extension for using [Apora](https://apora.sumku.cc) on browsers.
 
@@ -19,10 +20,22 @@ Supported Browser:
 
 | Browser |     Status     |    File name convention     |
 | :-----: | :------------: | :-------------------------: |
-| Chrome  |   Support ✅   | `apora-browser-chrome.zip`  |
-| Firefox |   Support ✅   | `apora-browser-firefox.zip` |
-|  Edge   |   Support ✅   |  `apora-browser-edge.zip`   |
+| Chrome  |   Support ✅   | `apora-browser-chrome-[version].zip`  |
+| Firefox |   Support ✅   | `apora-browser-firefox-[version].zip` |
+|  Edge   |   Support ✅   |  `apora-browser-edge-[version].zip`   |
 | Safari  | Not support ❌ |             ❌              |
+
+## snapshots
+
+### Setting & Feature
+
+<img alt="apora browser snapshot-1" src="https://github.com/0x0501/Apora-Browser/blob/911a4c1f6cc7d152a1f82894b585e490c65a6235/_resource/apora-browser-1280-800.png" />
+
+<hr/>
+
+### Functionality
+
+<img alt="apora browser snapshot-2" src="https://github.com/0x0501/Apora-Browser/blob/911a4c1f6cc7d152a1f82894b585e490c65a6235/_resource/apora-browser-1280-800%20(2).png" />
 
 ## Development
 
