@@ -118,7 +118,6 @@ export default function SettingTab() {
 		aporaAPITokenStorage.setValue(values.aporaAPIToken);
 
 		toast.success("Setting saved.");
-		console.log(values);
 	}
 
 	async function onSaveFeatures(values: z.infer<typeof FeatureSchema>) {
@@ -128,7 +127,6 @@ export default function SettingTab() {
 		addPartOfSpeechToTagStorage.setValue(values.addPartOfSpeechToTag);
 
 		toast.success("Feature saved.");
-		console.log(values);
 	}
 
 	return (

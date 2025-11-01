@@ -1,6 +1,7 @@
 import "./style.css";
 import ReactDOM from "react-dom/client";
 import { PopOver } from "@/components/pop-over";
+import { sendMessage } from "@/utils/message";
 
 let isAltPressed = false;
 
@@ -15,6 +16,22 @@ export default defineContentScript({
 		if (!enabled) {
 			return; // if Apora browser was disabled, do nothing.
 		}
+
+		const handleSync = async (
+			selectedTerms: string,
+			fullText: string,
+			shadowUI: ShadowRootContentScriptUi<ReactDOM.Root>,
+		) => {
+			// for content script
+			await sendMessage("getDictData", {
+				inquire: selectedTerms,
+				fullText: fullText,
+			});
+
+			if (shadowUI.mounted) {
+				shadowUI.remove();
+			}
+		};
 
 		const expandSelectionToBoundaries = () => {
 			// if no selection was occurred, return
@@ -57,8 +74,6 @@ export default defineContentScript({
 			selection.removeAllRanges();
 			selection.addRange(expandedRange);
 		};
-
-		console.log(`Apora Browser: ${enabled}`);
 
 		ctx.addEventListener(document, "keydown", (e) => {
 			if (e.altKey) isAltPressed = true;
@@ -121,7 +136,15 @@ export default defineContentScript({
 					// 2. render react component
 					// Create a root on the UI container and render a component
 					const root = ReactDOM.createRoot(uiContainer);
-					root.render(<PopOver rect={rect} content={fullWordSelection} />);
+					root.render(
+						<PopOver
+							rect={rect}
+							content={fullWordSelection}
+							onSync={async (selectedTerms, fullText) =>
+								await handleSync(selectedTerms, fullText, ui)
+							}
+						/>,
+					);
 					return root;
 				},
 				onRemove: (root) => {
@@ -149,11 +172,6 @@ export default defineContentScript({
 
 			ctx.addEventListener(document, "click", handleClickOutside);
 
-			// get user selected text
-
-			console.log(`Alt key: ${isAltPressed}`);
-			console.warn(selection);
-			console.log(parentElementOfSelection);
 		});
 	},
 });

@@ -8,7 +8,7 @@ function sendNotification(
         type: "basic",
         title: title,
         message: message,
-        iconUrl: browser.runtime.getURL("/icon/icon.png")
+        iconUrl: browser.runtime.getURL("/icon/icon.png"),
     });
 }
 
@@ -29,8 +29,7 @@ export default defineBackground(() => {
         headers.append("Content-Type", "application/json");
         headers.append("Authorization", `Bearer ${API_TOKEN}`);
 
-        console.log("Send.................")
-
+        // fetch dictionary data from Apora
         const response = await fetch(API_ENDPOINT, {
             method: "POST",
             headers,
@@ -41,25 +40,76 @@ export default defineBackground(() => {
             }),
         });
 
-
         if (response.status === 200) {
             const resJson: Awaited<getDictDataReturnType> = await response
                 .json();
 
             if (resJson.success && resJson.data) {
-                sendNotification({
-                    title: "Apora Browser",
-                    message: "Successfully added 1 note.",
+                // add note to Anki
+                const ankiConnectUrl = await ankiConnectUrlStorage.getValue();
+                const deckName = await ankiDeckNameStorage.getValue();
+
+                if (!deckName) {
+                    console.error(
+                        `[Apora Browser.ankiConnect] 'deckName' cannot be empty"`,
+                    );
+                    return {
+                        success: false,
+                        message: "`deckName` cannot be empty",
+                        data: null,
+                    };
+                }
+
+                const ankiConnectResponse = await addNoteToDeck({
+                    ankiConnectUrl,
+                    note: {
+                        deckName: deckName,
+                        modelName: "Apora-English",
+                        fields: {
+                            Sentence: fullText, // highlight inquiring word
+                            Word: resJson.data.original,
+                            Phonetics: resJson.data.ipa,
+                            Definition: resJson.data.meaning,
+                            Chinese_Definition: resJson.data.chineseMeaning,
+                        },
+                        tags: [resJson.data.partOfSpeech],
+                    },
                 });
-                return {
-                    success: true,
-                    message: null,
-                    data: resJson.data,
-                };
+
+                if (!ankiConnectResponse.success) {
+                    sendNotification({
+                        title: "Apora Browser",
+                        message: `Occurred error ${
+                            JSON.stringify(ankiConnectResponse.message)
+                        }.`,
+                    });
+                    console.error(
+                        `[Apora Browser.ankiConnect] ${
+                            JSON.stringify(ankiConnectResponse.message)
+                        }`,
+                    );
+                    return {
+                        success: false,
+                        message: ankiConnectResponse.message,
+                        data: null,
+                    };
+                } else {
+                    sendNotification({
+                        title: "Apora Browser",
+                        message: "Successfully added 1 note.",
+                    });
+                    return {
+                        success: true,
+                        message: null,
+                        data: resJson.data,
+                    };
+                }
             } else {
                 sendNotification({
                     title: "Apora Browser",
-                    message: `Occurred error ${String(resJson.message)}.`,
+                    message: `Occurred error ${
+                        JSON.stringify(resJson.message)
+                    }.`,
                 });
                 return {
                     success: false,
@@ -71,7 +121,7 @@ export default defineBackground(() => {
             const errorRes = await response.json();
             sendNotification({
                 title: "Apora Browser",
-                message: `Occurred error ${String(errorRes)}.`,
+                message: `Occurred error ${JSON.stringify(errorRes)}.`,
             });
             return {
                 success: false,
@@ -80,6 +130,4 @@ export default defineBackground(() => {
             };
         }
     });
-
-    console.log("Hello background!", { id: browser.runtime.id });
 });
