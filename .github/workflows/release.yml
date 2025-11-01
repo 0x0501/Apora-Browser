@@ -18,9 +18,9 @@ jobs:
             - name: Build Chrome extension
               run: bun wxt zip
             - name: Build Firefox extension
-              run: bun wxt -b firefox
+              run: bun wxt zip -b firefox
             - name: Build Edge extension
-              run: bun wxt -b edge
+              run: bun wxt zip -b edge
             - name: Create Release
               uses: softprops/action-gh-release@v2
               with:
