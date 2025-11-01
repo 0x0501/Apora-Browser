@@ -29,9 +29,9 @@ jobs:
                 name: Release ${{ github.ref_name }}
                 body: |
                     Automated build for version ${{ github.ref_name }}.
-                    - Chrome ZIP: {aporabrowser}-${{ github.ref_name }}-chrome.zip
-                    - Edge Zip: {aporabrowser}-${{ github.ref_name }}-edge.zip
-                    - Firefox ZIP: {aporabrowser}-${{ github.ref_name }}-firefox.zip
+                    - Chrome ZIP: aporabrowser-${{ github.ref_name }}-chrome.zip
+                    - Edge Zip: aporabrowser-${{ github.ref_name }}-edge.zip
+                    - Firefox ZIP: aporabrowser-${{ github.ref_name }}-firefox.zip
                 draft: false
                 prerelease: false
                 files: |
