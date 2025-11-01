@@ -34,12 +34,12 @@ export const pronunciationVariantStorage = storage.defineItem<
 
 export const enableTermHighlightingStorage = storage.defineItem<boolean>(
     "local:enableTermHighlighting",
-    { fallback: false },
+    { fallback: true },
 );
 
 export const addPartOfSpeechToTagStorage = storage.defineItem<boolean>(
     "local:addPartOfSpeechToTag",
-    { fallback: false },
+    { fallback: true },
 );
 
 interface loadConfigFromStorageType {
