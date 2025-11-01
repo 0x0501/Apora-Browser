@@ -85,9 +85,9 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 					</span>
 					<button
 						type="button"
-						disabled={selectedIndices.length === 0}
+						disabled={selectedIndices.length === 0 || isLoading}
 						onClick={handleClearSelection}
-						className="rounded-md border border-red-200 text-red-200 not-disabled:border-red-400 not-disabled:text-red-400 text-sm py-1 px-2 cursor-pointer not-disabled:hover:bg-red-400 not-disabled:hover:text-white duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
+						className="rounded-md border border-red-200 text-red-200 not-disabled:border-red-400 not-disabled:text-red-400 text-sm py-1 px-2 cursor-pointer not-disabled:hover:bg-red-400 not-disabled:hover:text-white duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2 disabled:cursor-auto"
 					>
 						<CircleX size={16} />
 						Clear
@@ -95,8 +95,8 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 					<button
 						type="button"
 						onClick={handleSync}
-						disabled={selectedIndices.length === 0}
-						className="rounded-md bg-blue-200 text-gray-50 not-disabled:bg-blue-500 text-sm py-1 px-2 not-disabled:text-gray-50 cursor-pointer not-disabled:hover:bg-blue-400 duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
+						disabled={selectedIndices.length === 0 || isLoading}
+						className="rounded-md bg-blue-200 text-gray-50 not-disabled:bg-blue-500 text-sm py-1 px-2 not-disabled:text-gray-50 cursor-pointer not-disabled:hover:bg-blue-400 duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2  disabled:cursor-auto"
 					>
 						{isLoading ? (
 							<Spinner
