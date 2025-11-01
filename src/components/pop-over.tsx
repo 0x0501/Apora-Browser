@@ -1,11 +1,11 @@
+import { Spinner } from "@heroui/react";
 import { CircleX, Send } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 
 interface PopOverProps {
 	rect: DOMRect;
 	content: string;
-	onSync: (selectedTerms: string, context: string) => void;
+	onSync: (selectedTerms: string, context: string) => Promise<void>;
 	gap?: number;
 }
 
@@ -13,6 +13,8 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [height, setHeight] = useState<number>(0);
+
+	const [isLoading, setIsLoading] = useState(false);
 
 	const calculatedTop =
 		rect.top - height - gap <= 0 ? 0 : rect.top - height - gap;
@@ -39,7 +41,7 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 		capitalized = capitalized.replaceAll(/\[\d+\]/g, "");
 
 		// replace comma, semi-colon and other special characters to dot (.)
-		capitalized = capitalized.replace(/[,:;'"[\]/\\=()*&^%$#@]$/, ".")
+		capitalized = capitalized.replace(/[,:;'"[\]/\\=()*&^%$#@]$/, ".");
 
 		// if no ending punctuation was presented, we add dot(.)
 		if (!/[.?!]$/.test(capitalized)) {
@@ -50,11 +52,14 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 	}
 
 	async function handleSync() {
+		setIsLoading(true);
 		const selectedTerms = selectedIndices.map((i) => splittedContents[i]); // remove duplicated terms
 		const formattedContext = formatContext(content);
 
-		onSync(selectedTerms.join(' '), formattedContext);
-		toast.success("dddddddddddddd")
+		if (selectedIndices.length > 0 && formattedContext.length > 0) {
+			await onSync(selectedTerms.join(" "), formattedContext);
+		}
+		setIsLoading(false);
 	}
 
 	function handleClearSelection() {
@@ -90,9 +95,19 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 					<button
 						type="button"
 						onClick={handleSync}
-						className="rounded-md bg-blue-500 text-sm py-1 px-2 text-gray-50 cursor-pointer hover:bg-blue-300 duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
+						disabled={selectedIndices.length === 0}
+						className="rounded-md bg-blue-200 text-gray-50 not-disabled:bg-blue-500 text-sm py-1 px-2 not-disabled:text-gray-50 cursor-pointer not-disabled:hover:bg-blue-400 duration-400 ease-in-out transition-all inline-flex items-center justify-center gap-2"
 					>
-						<Send size={16} />
+						{isLoading ? (
+							<Spinner
+								size="sm"
+								className="transition-all duration-200"
+								classNames={{ wrapper: "size-4" }}
+								color="white"
+							/>
+						) : (
+							<Send size={16} className="transition-all duration-200" />
+						)}
 						Sync
 					</button>
 				</div>
@@ -118,7 +133,7 @@ export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 								}`}
 								data-selected={isSelected ? "true" : "false"}
 								className={cn(
-									"border border-gray-50 rounded selection:bg-transparent cursor-pointer bg-gray-100 py-1 px-2 text-sm hover:bg-green-600 data-[selected=true]:bg-green-600 data-[selected=true]:text-gray-50 hover:text-gray-50 transition-all ease-in-out duration-300",
+									"border border-gray-50 rounded selection:bg-transparent cursor-pointer bg-gray-100 py-1 px-2 text-sm hover:bg-green-600 data-[selected=true]:bg-green-600 data-[selected=true]:text-gray-50 hover:text-gray-50 transition-all ease-in-out duration-200",
 									{
 										"": false,
 									},
