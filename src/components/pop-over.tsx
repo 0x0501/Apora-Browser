@@ -1,13 +1,15 @@
 import { CircleX, Send } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 interface PopOverProps {
 	rect: DOMRect;
 	content: string;
+	onSync: (selectedTerms: string, context: string) => void;
 	gap?: number;
 }
 
-export function PopOver({ rect, gap = 10, content }: PopOverProps) {
+export function PopOver({ rect, gap = 10, content, onSync }: PopOverProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const [height, setHeight] = useState<number>(0);
@@ -36,6 +38,9 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 		// remove all the reference: [1], [2], .etc
 		capitalized = capitalized.replaceAll(/\[\d+\]/g, "");
 
+		// replace comma, semi-colon and other special characters to dot (.)
+		capitalized = capitalized.replace(/[,:;'"[\]/\\=()*&^%$#@]$/, ".")
+
 		// if no ending punctuation was presented, we add dot(.)
 		if (!/[.?!]$/.test(capitalized)) {
 			capitalized += ".";
@@ -44,12 +49,12 @@ export function PopOver({ rect, gap = 10, content }: PopOverProps) {
 		return capitalized;
 	}
 
-	function handleSync() {
+	async function handleSync() {
 		const selectedTerms = selectedIndices.map((i) => splittedContents[i]); // remove duplicated terms
 		const formattedContext = formatContext(content);
 
-		console.log(selectedTerms);
-		console.log(formattedContext);
+		onSync(selectedTerms.join(' '), formattedContext);
+		toast.success("dddddddddddddd")
 	}
 
 	function handleClearSelection() {
