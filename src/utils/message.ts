@@ -69,6 +69,7 @@ export type DictDataReturnType = {
     ipa: string;
     context?: string; // if `context` enabled
     replacing?: string; // if `context` enabled
+    fileNameTag?: string; // if `pronunciation` enabled
 };
 
 export type getDictDataReturnType = Promise<OperationResponseBase<DictDataReturnType>>;

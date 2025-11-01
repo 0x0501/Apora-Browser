@@ -63,7 +63,7 @@ export async function listDecks(
 export type NoteMedia<K extends string> = {
     url: string;
     filename: string;
-    skipHash: string;
+    skipHash?: string; // optional 
     fields: K[];
 };
 

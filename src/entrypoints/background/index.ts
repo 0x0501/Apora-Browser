@@ -17,6 +17,11 @@ export default defineBackground(() => {
         const API_TOKEN = await aporaAPITokenStorage.getValue();
         const API_ENDPOINT = `https://apora.sumku.cc/api/dict`;
 
+        const pronunciationVariant = await pronunciationVariantStorage
+            .getValue();
+        const enabledPronunciation = await enablePronunciationStorage
+            .getValue();
+
         if (!API_TOKEN) {
             return {
                 success: false,
@@ -34,10 +39,18 @@ export default defineBackground(() => {
             method: "POST",
             headers,
             signal: AbortSignal.timeout(1000 * 60 * 2), // set 2mins as timeout
-            body: JSON.stringify({
-                inquire,
-                fullText,
-            }),
+            body: enabledPronunciation
+                ? JSON.stringify({
+                    inquire,
+                    fullText,
+                    speech: "tts_sentence", // only support tts sentence
+                    variant: pronunciationVariant,
+                })
+                : JSON.stringify({
+                    inquire,
+                    fullText,
+                    variant: pronunciationVariant,
+                }),
         });
 
         if (response.status === 200) {
@@ -63,6 +76,13 @@ export default defineBackground(() => {
                     };
                 }
 
+                let audioDownloadLink = "";
+
+                if (enabledPronunciation && resJson.data.fileNameTag) {
+                    audioDownloadLink =
+                        `https://apora.sumku.cc/api/audio/${API_TOKEN}/${resJson.data.fileNameTag}.wav`;
+                }
+
                 const ankiConnectResponse = await addNoteToDeck({
                     ankiConnectUrl,
                     note: {
@@ -79,7 +99,15 @@ export default defineBackground(() => {
                             Phonetics: resJson.data.ipa,
                             Definition: resJson.data.meaning,
                             Chinese_Definition: resJson.data.chineseMeaning,
+                            Pronunciation: "",
                         },
+                        audio: audioDownloadLink !== ""
+                            ? [{
+                                url: audioDownloadLink,
+                                filename: `APORA-${inquire}-${Date.now()}.wav`,
+                                fields: ["Pronunciation"],
+                            }]
+                            : [],
                         tags: addTag ? [resJson.data.partOfSpeech] : [],
                     },
                 });
