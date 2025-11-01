@@ -48,6 +48,9 @@ export default defineBackground(() => {
                 // add note to Anki
                 const ankiConnectUrl = await ankiConnectUrlStorage.getValue();
                 const deckName = await ankiDeckNameStorage.getValue();
+                const addTag = await addPartOfSpeechToTagStorage.getValue();
+                const highlight = await enableTermHighlightingStorage
+                    .getValue();
 
                 if (!deckName) {
                     console.error(
@@ -66,13 +69,18 @@ export default defineBackground(() => {
                         deckName: deckName,
                         modelName: "Apora-English",
                         fields: {
-                            Sentence: fullText, // highlight inquiring word
+                            Sentence: highlight
+                                ? fullText.replace(
+                                    inquire,
+                                    `<span style="font-weight: bold; color: #4096ff;">${inquire}</span>`,
+                                )
+                                : fullText, // highlight inquiring word
                             Word: resJson.data.original,
                             Phonetics: resJson.data.ipa,
                             Definition: resJson.data.meaning,
                             Chinese_Definition: resJson.data.chineseMeaning,
                         },
-                        tags: [resJson.data.partOfSpeech],
+                        tags: addTag ? [resJson.data.partOfSpeech] : [],
                     },
                 });
 
