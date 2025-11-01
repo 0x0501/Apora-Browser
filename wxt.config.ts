@@ -7,7 +7,7 @@ export default defineConfig({
   manifestVersion: 3,
   manifest: {
     name: "Apora Browser",
-    version: "0.0.1",
+    version: "1.0.0",
     description: "Browser extension for using Apora on browsers.",
     host_permissions: ["https://apora.sumku.cc/*", "http://127.0.0.1/*"], // Always allow Apora website
     permissions: ["storage", "notifications", "tabs"],
