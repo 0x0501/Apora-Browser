@@ -33,24 +33,28 @@ export default defineBackground(() => {
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
         headers.append("Authorization", `Bearer ${API_TOKEN}`);
+        console.log(API_TOKEN);
+        console.log(headers);
+
+        const payload = enabledPronunciation
+            ? JSON.stringify({
+                inquire,
+                fullText,
+                speech: "tts_sentence", // only support tts sentence
+                variant: pronunciationVariant,
+            })
+            : JSON.stringify({
+                inquire,
+                fullText,
+                variant: pronunciationVariant,
+            });
 
         // fetch dictionary data from Apora
         const response = await fetch(API_ENDPOINT, {
             method: "POST",
             headers,
             signal: AbortSignal.timeout(1000 * 60 * 2), // set 2mins as timeout
-            body: enabledPronunciation
-                ? JSON.stringify({
-                    inquire,
-                    fullText,
-                    speech: "tts_sentence", // only support tts sentence
-                    variant: pronunciationVariant,
-                })
-                : JSON.stringify({
-                    inquire,
-                    fullText,
-                    variant: pronunciationVariant,
-                }),
+            body: payload,
         });
 
         if (response.status === 200) {
@@ -124,6 +128,9 @@ export default defineBackground(() => {
                             JSON.stringify(ankiConnectResponse.message)
                         }`,
                     );
+                    console.error(payload);
+                    console.error(resJson.message);
+                    console.error(ankiConnectResponse);
                     return {
                         success: false,
                         message: ankiConnectResponse.message,
@@ -147,6 +154,8 @@ export default defineBackground(() => {
                         JSON.stringify(resJson.message)
                     }.`,
                 });
+                console.error(payload);
+                console.error(resJson.message);
                 return {
                     success: false,
                     message: JSON.stringify(resJson.message),
@@ -159,6 +168,8 @@ export default defineBackground(() => {
                 title: "Apora Browser",
                 message: `Occurred error ${JSON.stringify(errorRes)}.`,
             });
+            console.error(payload);
+            console.error(errorRes);
             return {
                 success: false,
                 message: JSON.stringify(errorRes),
